@@ -1,0 +1,15 @@
+matplotlib>=3.5.0
+numpy>=1.20.0
+# Note: The following libraries are part of the Python standard library and don't need installation:
+# - sqlite3
+# - csv
+# - datetime
+# - shlex
+# - subprocess
+# - os
+# - sys
+
+
+
+
+
