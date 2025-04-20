@@ -1,6 +1,6 @@
 # Expense Tracking System
 
-A command-line database application for tracking and analyzing personal or organizational expenses.
+A comprehensive application for tracking and analyzing personal or organizational expenses, featuring both a command-line interface and a modern web interface.
 
 ## Overview
 
@@ -33,9 +33,13 @@ This system allows users to add, manage, and analyze expenses with multiple cate
   - `report payment_method_details_expense` - Analyzes payment method details with masking of sensitive information.
   - `report analyze_expenses` - Generates a comprehensive dashboard for expense analytics with customizable filters.
 
-- **Test Cases:**  
-  Comprehensive test cases have been added to validate new features such as logs, enhanced reporting, and CSV operations.  
-  These tests can be run to ensure the integrity of the application.
+- **Web Interface:**  
+  A modern web application built with Streamlit that provides:
+  - Interactive dashboards with data visualizations
+  - User-friendly forms for data entry and management
+  - Responsive design for desktop and mobile access
+  - Role-based navigation and permissions
+  - Real-time analytics and reporting
 
 ## Installation
 
@@ -46,19 +50,25 @@ This system allows users to add, manage, and analyze expenses with multiple cate
 - Required Python packages:
   - matplotlib
   - numpy
+  - streamlit
+  - pandas
+  - plotly
 
 ### Libraries Used
 
 This project uses the following libraries:
 - **External libraries** (need installation):
-  - matplotlib - Data visualization
+  - matplotlib - Data visualization for CLI
   - numpy - Numerical calculations
+  - streamlit - Web interface
+  - pandas - Data manipulation
+  - plotly - Interactive web visualizations
 
 - **Standard library** (included with Python):
   - sqlite3 - Database operations
   - csv - CSV file handling
   - datetime - Date and time operations
-  - shlex - Command parsing
+  - shlex - Command parsing (CLI)
   - subprocess - Process management
   - os, sys - System operations
 
@@ -73,9 +83,13 @@ This project uses the following libraries:
    # Option 2: Let the app install requirements automatically
    # (The app will check and install requirements on first run)
    ```
-3. Run the main application:
+3. Run the application:
    ```
+   # For command-line interface
    python main.py
+   
+   # For web interface
+   streamlit run streamlit_app.py
    ```
 
 ## Database Structure
@@ -93,42 +107,35 @@ The application uses SQLite with the following tables:
 - payment_method_expense
 - user_expense
 
-## Commands
+## Command Line Interface
 
 ### Authentication
-
 - `login <username> <password>` - Log in to the system
 - `logout` - Log out of the system
 
 ### User Management (Admin Only)
-
 - `add_user <username> <password> <role>` - Create a new user
 - `list_users` - List all registered users
 
 ### Category Management
-
 - `list_categories` - List all expense categories
 - `add_category <category_name>` - Add a new category (Admin only)
 
 ### Payment Methods
-
 - `list_payment_methods` - List all payment methods
 - `add_payment_method <payment_method_name>` - Add a new payment method (Admin only)
 
 ### Expense Management
-
 - `add_expense <amount> <category> <payment_method> <date> <description> <tag>` - Add a new expense
-- `update_expense <expense_id> <field> <new_value>` - Update an existing expense
+- `update_expense <expense_id> <field> <new_value>` - Update an expense
 - `delete_expense <expense_id>` - Delete an expense
 - `list_expenses [<field> <operator> <value>, ...]` - List expenses with optional filters
 
 ### CSV Operations
-
 - `import_expenses <file_path>` - Import expenses from a CSV file
 - `export_csv <file_path> [, sort-on <field_name>]` - Export expenses to a CSV file
 
 ### Reporting
-
 - `report top_expenses <N> <start_date> <end_date>` - Show top N expenses in a date range
 - `report category_spending <category>` - Analyze spending for a specific category
 - `report above_average_expenses` - Show expenses above their category average
@@ -141,16 +148,49 @@ The application uses SQLite with the following tables:
 - `report analyze_expenses [<field> <operator> <value>, ...]` - Dashboard with filtered analytics
 
 ### Logs
-
 - `view_logs` - View detailed logs of user actions (Admin only)
 
 ### General
-
 - `help` - Show available commands for current user role
+
+## Web Interface
+
+The web interface provides a more user-friendly way to interact with the expense tracking system. It includes:
+
+### Dashboard
+- Summary metrics of expenses
+- Interactive charts for expense analysis by category, month, payment method, and tag
+- Recent expense listing
+
+### User Management (Admin)
+- Add, view, and manage users
+- Set user roles and permissions
+
+### Category & Payment Management (Admin)
+- Add and manage expense categories
+- Add and manage payment methods
+
+### Expense Management
+- Add, edit, and delete expenses
+- Filter and search expenses
+- Bulk operations
+
+### Reports
+- Basic reports with interactive filters
+- Advanced analytics with comprehensive dashboards
+- Data export options
+
+### Import/Export
+- CSV file import with validation
+- Export filtered data to CSV
+
+### System Logs (Admin)
+- View detailed system and user activity logs
+- Filter logs by user, action, or date
 
 ## Filtering Data
 
-Many commands support filtering with the following syntax:
+Many commands and features support filtering with the following syntax:
 ```
 <field> <operator> <value>
 ```
@@ -168,7 +208,7 @@ list_expenses amount > 100, category = food, month = january
 ## User Roles
 
 ### Admin
-- Has access to all features
+- Has access to all functions except expense functions such as add, delete, modify
 - Can manage users, categories, and payment methods
 - Has access to system-wide reports
 
@@ -197,7 +237,8 @@ The reporting system generates visualizations for data analysis including:
 
 ## Development Structure
 
-- `main.py`: Entry point and main application loop
+- `main.py`: Entry point and main application loop for CLI
+- `streamlit_app.py`: Entry point for web interface
 - `user.py`: User authentication and management
 - `category.py`: Category management
 - `payment.py`: Payment method management
@@ -206,7 +247,8 @@ The reporting system generates visualizations for data analysis including:
 - `csv_operations.py`: Data import/export utilities
 - `parser.py`: Command parsing and routing
 - `constants.py`: System-wide constants and privileges
-- `log_manager.py`: Logs module to record user actions *(new)*
+- `logs.py`: Logs module to record user actions
+- `pages/`: Web interface page components
 
 ## Project Structure
 
@@ -221,7 +263,9 @@ DBMS_assignment/
 ├── reporting.py          # Data analysis and visualization features (new reporting functions included)
 ├── parser.py             # Command parsing and routing
 ├── constants.py          # System permissions and constants
-├── log_manager.py        # Logs module to record user actions *(new)*
+├── logs.py               # Logs module to record user actions
+├── streamlit_app.py      # Web interface built with Streamlit
+├── pages/                # Web interface page components
 ├── ExpenseReport         # SQLite database file
 └── import_expenses_template.csv  # CSV template
 ```
@@ -339,7 +383,6 @@ This project is provided as an educational tool. Feel free to use and modify for
 ## Contributing
 
 To extend this project, consider adding:
-- Web interface
 - Multi-currency support
 - Budget planning features
 - Receipt image processing
