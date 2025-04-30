@@ -21,22 +21,10 @@
      
      REM Create the database directory if it doesn't exist
      if not exist "expense_tracker\database" mkdir "expense_tracker\database"
-     
-     REM Database file synchronization logic
-     if exist "ExpenseReport" (
-         if not exist "expense_tracker\database\ExpenseReport" (
-             echo Copying database file to package location...
-             copy "ExpenseReport" "expense_tracker\database\ExpenseReport" > nul
-         ) else (
-             echo Both database files exist. Using the package version.
-             echo To use the root version instead, delete the package version first.
-         )
+     if not exist "expense_tracker\database\ExpenseReport" (
+         echo No database file found. A new one will be created at expense_tracker\database\ExpenseReport
      ) else (
-         if exist "expense_tracker\database\ExpenseReport" (
-             echo Using existing package database.
-         ) else (
-             echo No database file found. A new one will be created.
-         )
+         echo Using existing database at expense_tracker\database\ExpenseReport
      )
      
      echo Starting Streamlit server...
