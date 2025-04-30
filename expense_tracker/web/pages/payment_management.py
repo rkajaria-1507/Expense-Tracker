@@ -1,15 +1,6 @@
 import streamlit as st
-import sqlite3
 import pandas as pd
-import os
-import sys
-
-# Get project root directory
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
-
-# Updated imports from the package structure
+from expense_tracker.database.connection import get_connection
 from expense_tracker.core.payment import PaymentManager
 from expense_tracker.utils.logs import LogManager
 from expense_tracker.database.sql_queries import PAYMENT_QUERIES
@@ -26,15 +17,7 @@ def show_payment_management():
     tab1, tab2, tab3 = st.tabs(["List Payment Methods", "Add Payment Method", "Delete Payment Method"])
     
     # Get database connection and payment manager
-    # Reuse existing connection if in st.session_state
-    if "conn" in st.session_state and "cursor" in st.session_state:
-        conn = st.session_state.conn
-        cursor = st.session_state.cursor
-    else:
-        db_path = os.path.join(project_root, "expense_tracker", "database", "ExpenseReport")
-        conn = sqlite3.connect(db_path, check_same_thread=False)
-        cursor = conn.cursor()
-    
+    conn, cursor = get_connection()
     payment_manager = PaymentManager(cursor, conn)
     log_manager = LogManager(cursor, conn)
     log_manager.set_current_user(st.session_state.username)

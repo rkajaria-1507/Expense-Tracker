@@ -1,40 +1,25 @@
 import streamlit as st
-import sqlite3
 import pandas as pd
-import os
-import sys
 from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
-
-# Setup project root path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
-
-# Imports
+from expense_tracker.database.connection import get_connection
 from expense_tracker.core.reporting import ReportManager
 from expense_tracker.utils.logs import LogManager
 
 def show_advanced_reports():
     st.markdown("<div class='main-header'>Advanced Analytics</div>", unsafe_allow_html=True)
 
-    # Get DB connection
-    if "conn" in st.session_state and "cursor" in st.session_state:
-        conn = st.session_state.conn
-        cursor = st.session_state.cursor
-    else:
-        db_path = os.path.join(project_root, "expense_tracker", "database", "ExpenseReport")
-        conn = sqlite3.connect(db_path, check_same_thread=False)
-        cursor = conn.cursor()
-
+    # Initialize DB connection and managers
+    conn, cursor = get_connection()
+     
     report_manager = ReportManager(cursor, conn)
     report_manager.set_user_info(st.session_state.username, st.session_state.role)
 
     log_manager = LogManager(cursor, conn)
     log_manager.set_current_user(st.session_state.username)
 
-    # Tabs
+     # Tabs
     tabs = st.tabs(["Above Average Expenses", "Analytics Dashboard", "Payment Method Details"])
 
     # Tab 1: Above Average Expenses

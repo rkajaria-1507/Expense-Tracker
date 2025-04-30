@@ -1,51 +1,38 @@
 import streamlit as st
-import sqlite3
 import pandas as pd
-import os
-import sys
 import tempfile
 from datetime import datetime
-
-# Get project root directory
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
-
-# Updated imports from the package structure
-from expense_tracker.utils.csv_operations import CSVOperations
+from expense_tracker.database.connection import get_connection
 from expense_tracker.core.expense import ExpenseManager
+from expense_tracker.utils.csv_operations import CSVOperations
 from expense_tracker.utils.logs import LogManager
+import os
+from pathlib import Path
+
+# Determine project root for static templates
+project_root = Path(__file__).resolve().parent.parent.parent
 
 def show_import_export():
     st.markdown("<div class='main-header'>Import/Export Data</div>", unsafe_allow_html=True)
-    
-    # Get database connection
-    if "conn" in st.session_state and "cursor" in st.session_state:
-        conn = st.session_state.conn
-        cursor = st.session_state.cursor
-    else:
-        db_path = os.path.join(project_root, "expense_tracker", "database", "ExpenseReport")
-        conn = sqlite3.connect(db_path, check_same_thread=False)
-        cursor = conn.cursor()
-    
+     
+    # Initialize DB connection and managers
+    conn, cursor = get_connection()
     expense_manager = ExpenseManager(cursor, conn)
     expense_manager.set_current_user(st.session_state.username)
-    
     csv_operations = CSVOperations(cursor, conn, expense_manager)
     csv_operations.set_current_user(st.session_state.username)
-    
     log_manager = LogManager(cursor, conn)
     log_manager.set_current_user(st.session_state.username)
-    
+
     # Setup tabs for import and export
     tab1, tab2 = st.tabs(["Import", "Export"])
-    
+
     # Import Tab
     with tab1:
         st.subheader("Import Expenses from CSV")
         
         # Show template download link
-        template_path = os.path.join(project_root, "expense_tracker", "static", "templates", "import_expenses_template.csv")
+        template_path = project_root / "expense_tracker" / "static" / "templates" / "import_expenses_template.csv"
         
         if os.path.exists(template_path):
             with open(template_path, "r") as f:
@@ -58,7 +45,7 @@ def show_import_export():
                 mime="text/csv"
             )
             
-            st.markdown("""
+            st.markdown("""        
             **CSV Format Requirements:**
             - Headers: amount, category, payment_method, date, description, tag, payment_detail_identifier (optional)
             - Date format: YYYY-MM-DD

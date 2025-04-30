@@ -1,13 +1,13 @@
 import streamlit as st
-import sqlite3
-import pandas as pd
+import sqlite3  # retained for possible local use but connection now from centralized module
 from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
 import os
 import sys
+import pandas as pd  # added pandas import
 
-# Add the parent directory to sys.path to make the expense_tracker package importable
+# Add project root to sys.path to allow importing expense_tracker
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
@@ -22,6 +22,9 @@ from expense_tracker.utils.csv_operations import CSVOperations
 from expense_tracker.utils.logs import LogManager
 from expense_tracker.database.sql_queries import USER_QUERIES
 from expense_tracker.config.constants import list_of_privileges
+
+# Import centralized DB connection
+from expense_tracker.database.connection import get_connection
 
 # Import pages directly from the pages directory
 pages_dir = os.path.join(project_root, "pages")
@@ -142,28 +145,6 @@ if "role" not in st.session_state:
     st.session_state.role = None
 if "current_page" not in st.session_state:
     st.session_state.current_page = "login"
-
-# Initialize database connection
-def get_connection():
-    # Use the same database path as the CLI for consistency
-    db_path = os.path.join(project_root, "expense_tracker", "database", "ExpenseReport")
-    
-    # Create the database directory if it doesn't exist
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
-    
-    # If database doesn't exist in the package location but exists in root, copy it
-    if not os.path.exists(db_path) and os.path.exists(os.path.join(project_root, "ExpenseReport")):
-        import shutil
-        shutil.copy(os.path.join(project_root, "ExpenseReport"), db_path)
-    
-    conn = sqlite3.connect(db_path, check_same_thread=False)
-    cursor = conn.cursor()
-    
-    # Store connections in session state for other pages to use
-    st.session_state.conn = conn
-    st.session_state.cursor = cursor
-    
-    return conn, cursor
 
 # Initialize managers
 def initialize_managers(_conn, _cursor):

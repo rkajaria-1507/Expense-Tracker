@@ -1,15 +1,6 @@
 import streamlit as st
-import sqlite3
 import pandas as pd
-import os
-import sys
-
-# Get project root directory
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
-
-# Updated imports from the package structure
+from expense_tracker.database.connection import get_connection
 from expense_tracker.core.category import CategoryManager
 from expense_tracker.utils.logs import LogManager
 
@@ -25,15 +16,7 @@ def show_category_management():
     tab1, tab2, tab3 = st.tabs(["List Categories", "Add Category", "Delete Category"])
     
     # Get database connection and category manager
-    # Reuse existing connection if in st.session_state
-    if "conn" in st.session_state and "cursor" in st.session_state:
-        conn = st.session_state.conn
-        cursor = st.session_state.cursor
-    else:
-        db_path = os.path.join(project_root, "expense_tracker", "database", "ExpenseReport")
-        conn = sqlite3.connect(db_path, check_same_thread=False)
-        cursor = conn.cursor()
-    
+    conn, cursor = get_connection()
     category_manager = CategoryManager(cursor, conn)
     log_manager = LogManager(cursor, conn)
     log_manager.set_current_user(st.session_state.username)
@@ -93,12 +76,7 @@ def show_category_management():
                 JOIN Categories c ON ce.category_id = c.category_id
                 WHERE c.category_name = ?
             """, (category_to_delete,))
-            
             expense_count = cursor.fetchone()[0]
-            
-            # Display category information and warning
-            st.markdown(f"**Category:** {category_to_delete}")
-            
             # Warning about deletion of all related data
             st.warning(f"Deleting this category will remove it and all associated {expense_count} expenses. This action cannot be undone.")
             
