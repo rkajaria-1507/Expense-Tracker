@@ -1,3 +1,4 @@
+-e .
 matplotlib>=3.5.0
 numpy>=1.20.0
 streamlit>=1.21.0

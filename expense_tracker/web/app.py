@@ -26,17 +26,15 @@ from expense_tracker.config.constants import list_of_privileges
 # Import centralized DB connection
 from expense_tracker.database.connection import get_connection
 
-# Import pages directly from the pages directory
-pages_dir = os.path.join(project_root, "pages")
-sys.path.append(pages_dir)
-from pages.user_management import show_user_management
-from pages.category_management import show_category_management
-from pages.payment_management import show_payment_management
-from pages.manage_expenses import show_manage_expenses
-from pages.basic_reports import show_basic_reports
-from pages.advanced_reports import show_advanced_reports
-from pages.import_export import show_import_export
-from pages.system_logs import show_system_logs
+# Import pages via package path
+from expense_tracker.web.pages.user_management import show_user_management
+from expense_tracker.web.pages.category_management import show_category_management
+from expense_tracker.web.pages.payment_management import show_payment_management
+from expense_tracker.web.pages.manage_expenses import show_manage_expenses
+from expense_tracker.web.pages.basic_reports import show_basic_reports
+from expense_tracker.web.pages.advanced_reports import show_advanced_reports
+from expense_tracker.web.pages.import_export import show_import_export
+from expense_tracker.web.pages.system_logs import show_system_logs
 
 # Set page configuration
 st.set_page_config(
