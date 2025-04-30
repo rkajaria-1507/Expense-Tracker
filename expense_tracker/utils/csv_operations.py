@@ -1,6 +1,6 @@
 import csv
 import sqlite3
-from sql_queries import CSV_QUERIES
+from expense_tracker.database.sql_queries import CSV_QUERIES
 
 class CSVOperations:
     def __init__(self, cursor, conn, expense_manager=None):

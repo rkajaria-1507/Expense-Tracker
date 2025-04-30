@@ -6,15 +6,26 @@ import plotly.express as px
 import plotly.graph_objects as go
 import os
 import sys
-from user import UserManager
-from category import CategoryManager
-from payment import PaymentManager
-from expense import ExpenseManager
-from reporting import ReportManager
-from csv_operations import CSVOperations
-from logs import LogManager
-from constants import list_of_privileges
-import time
+
+# Add the parent directory to sys.path to make the expense_tracker package importable
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+# Updated imports from the package
+from expense_tracker.core.user import UserManager
+from expense_tracker.core.category import CategoryManager
+from expense_tracker.core.payment import PaymentManager
+from expense_tracker.core.expense import ExpenseManager
+from expense_tracker.core.reporting import ReportManager
+from expense_tracker.utils.csv_operations import CSVOperations
+from expense_tracker.utils.logs import LogManager
+from expense_tracker.database.sql_queries import USER_QUERIES
+from expense_tracker.config.constants import list_of_privileges
+
+# Import pages directly from the pages directory
+pages_dir = os.path.join(project_root, "pages")
+sys.path.append(pages_dir)
 from pages.user_management import show_user_management
 from pages.category_management import show_category_management
 from pages.payment_management import show_payment_management
@@ -111,6 +122,7 @@ st.markdown("""
     .admin-badge {
         background-color: #D81B60;
     }
+    
     [data-testid="stSidebarNav"] {
         display: none;
     }
@@ -133,8 +145,24 @@ if "current_page" not in st.session_state:
 
 # Initialize database connection
 def get_connection():
-    conn = sqlite3.connect("ExpenseReport", check_same_thread=False)
+    # Use the same database path as the CLI for consistency
+    db_path = os.path.join(project_root, "expense_tracker", "database", "ExpenseReport")
+    
+    # Create the database directory if it doesn't exist
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    
+    # If database doesn't exist in the package location but exists in root, copy it
+    if not os.path.exists(db_path) and os.path.exists(os.path.join(project_root, "ExpenseReport")):
+        import shutil
+        shutil.copy(os.path.join(project_root, "ExpenseReport"), db_path)
+    
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     cursor = conn.cursor()
+    
+    # Store connections in session state for other pages to use
+    st.session_state.conn = conn
+    st.session_state.cursor = cursor
+    
     return conn, cursor
 
 # Initialize managers
@@ -228,33 +256,74 @@ def show_sidebar():
         if st.sidebar.button("Import/Export", key="nav_import_export"):
             navigate_to("import_export")
         
-        # Logout button at the bottom
+        # Delete My Account button
+        st.sidebar.divider()
+        if st.sidebar.button("Delete My Account", key="delete_my_account_btn"):
+            navigate_to("delete_account")
+        # Logout button
         st.sidebar.divider()
         if st.sidebar.button("Logout", key="logout_btn"):
             logout_user()
 
+def show_delete_account():
+    st.markdown("<div class='main-header'>Delete My Account</div>", unsafe_allow_html=True)
+    # Count user-related expenses
+    cursor = st.session_state.cursor
+    user = st.session_state.username
+    cursor.execute(USER_QUERIES["check_user_expenses"], (user,))
+    count = cursor.fetchone()[0]
+    st.warning(f"Deleting your account will remove your user data and {count} associated expenses. This action cannot be undone.")
+    confirm = st.checkbox("I understand the consequences and want to delete my account", key="confirm_self_delete")
+    if confirm and st.button("Delete My Account", key="confirm_delete_account_btn"):
+        result = user_manager.delete_user(user)
+        if result:
+            st.success("Your account and all associated data have been deleted. You will be logged out.")
+            st.session_state.authenticated = False
+            st.session_state.username = None
+            st.session_state.role = None
+            st.session_state.current_page = "login"
+            st.rerun()
+        else:
+            st.error("Failed to delete your account. Please try again.")
+
 # Login Page
 def show_login_page():
     st.markdown("<div class='main-header'>💰 Expense Tracker System</div>", unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    
-    with col2:
-        st.markdown("### Login")
-        with st.form("login_form"):
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            submitted = st.form_submit_button("Login")
-            
-            if submitted:
-                if login_user(username, password):
-                    st.success("Login successful!")
-                    st.session_state.current_page = "dashboard"
-                    st.rerun()
-                else:
-                    st.error("Invalid username or password!")
-
-# Dashboard Page
+    # Two tabs: Login and Sign Up
+    tab_login, tab_signup = st.tabs(["Login", "Sign Up"])
+    # Login Tab
+    with tab_login:
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            with st.form("login_form"):
+                username = st.text_input("Username", key="login_username")
+                password = st.text_input("Password", type="password", key="login_password")
+                submitted = st.form_submit_button("Login")
+                if submitted:
+                    if login_user(username, password):
+                        st.success("Login successful!")
+                        st.session_state.current_page = "dashboard"
+                        st.rerun()
+                    else:
+                        st.error("Invalid username or password!")
+    # Sign Up Tab
+    with tab_signup:
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            with st.form("signup_form"):
+                new_user = st.text_input("Choose a username", key="signup_username")
+                new_pass = st.text_input("Choose a password", type="password", key="signup_password")
+                signup = st.form_submit_button("Sign Up")
+                if signup:
+                    if user_manager.register(new_user, new_pass):
+                        # Auto-login new user
+                        if login_user(new_user, new_pass):
+                            st.success("Registration successful!")
+                            st.session_state.current_page = "dashboard"
+                            st.rerun()
+                    else:
+                        st.error("Registration failed. See errors above.")
+     
 def show_dashboard():
     st.markdown("<div class='main-header'>Dashboard</div>", unsafe_allow_html=True)
     
@@ -299,7 +368,7 @@ def show_dashboard():
     
     with col2:
         st.markdown("<div class='card metric-card'>", unsafe_allow_html=True)
-        st.metric("Average Expense", f"₹{expenses_df['amount'].mean():.2f}")
+        st.metric("Average Expense", (f"₹{expenses_df['amount'].mean():.2f}") if not expenses_df.empty else "₹0.00")
         st.markdown("</div>", unsafe_allow_html=True)
     
     with col3:
@@ -398,6 +467,8 @@ def main():
             show_advanced_reports()
         elif st.session_state.current_page == "import_export":
             show_import_export()
+        elif st.session_state.current_page == "delete_account":
+            show_delete_account()
         else:
             show_dashboard()
     else:

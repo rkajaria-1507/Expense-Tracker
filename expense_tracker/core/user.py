@@ -1,5 +1,5 @@
 import sqlite3
-from sql_queries import USER_QUERIES
+from expense_tracker.database.sql_queries import USER_QUERIES
 
 class UserManager:
     def __init__(self, cursor, conn):
@@ -40,24 +40,30 @@ class UserManager:
             print("Error: No user is currently logged in.")
             return False
     
-    def register(self, username, password, role):
+    def register(self, username, password, role='user'):
+        # Validate inputs
+        if not username or not password:
+            return False, "Username and password cannot be empty."
+        # Get role_id for given role
+        # Only admins may create users with roles other than 'user'
+        if role != 'user':
+            if self.current_user is None or self.privileges != 'admin':
+                return False, "Only admins can assign non-user roles."
+
         self.cursor.execute(USER_QUERIES["get_role_id"], (role,))
         result = self.cursor.fetchone()
         if result is None:
-            print(f"Error: Role '{role}' does not exist. Registration failed!")
-            return False
+            return False, f"Role '{role}' does not exist."
         
         role_id = result[0]  # Extract role_id
 
         try:
             self.cursor.execute(USER_QUERIES["insert_user"], (username, password))
             self.cursor.execute(USER_QUERIES["insert_user_role"], (username, role_id))
-            print("User added successfully!")
             self.conn.commit()
-            return True
-        except sqlite3.IntegrityError:  # Catches duplicate username errors
-            print("Error: Username already exists!")
-            return False
+            return True, ""
+        except sqlite3.IntegrityError:
+            return False, f"Username '{username}' already exists."
     
     def list_users(self):
         self.cursor.execute(USER_QUERIES["list_users"])
@@ -110,30 +116,24 @@ class UserManager:
                 print(f"Error: User '{username}' does not exist.")
                 return False
 
-            # If admin is deleting another user, ask for confirmation
-            if self.privileges == "admin" and self.current_user != username:
-                confirmation = input(f"Are you sure you want to delete user '{username}'? This action cannot be undone. (y/n): ")
-                if confirmation.lower() != 'y':
-                    print("User deletion cancelled.")
-                    return False
+            # Fetch all expenses of this user
+            self.cursor.execute("SELECT expense_id FROM User_Expense WHERE username = ?", (username,))
+            expense_ids = [row[0] for row in self.cursor.fetchall()]
+            # Delete related expense data
+            for eid in expense_ids:
+                self.cursor.execute("DELETE FROM Category_Expense WHERE expense_id = ?", (eid,))
+                self.cursor.execute("DELETE FROM Tag_Expense WHERE expense_id = ?", (eid,))
+                self.cursor.execute("DELETE FROM Payment_Method_Expense WHERE expense_id = ?", (eid,))
+                self.cursor.execute("DELETE FROM User_Expense WHERE expense_id = ?", (eid,))
+                self.cursor.execute("DELETE FROM Expense WHERE expense_id = ?", (eid,))
 
-            # Check if the user has any expenses
-            self.cursor.execute(USER_QUERIES["check_user_expenses"], (username,))
-            expense_count = self.cursor.fetchone()[0]
-            if expense_count > 0:
-                print(f"Error: Cannot delete user '{username}' as they have {expense_count} expenses associated with them.")
-                print("Please delete all expenses for this user first before deleting the user.")
-                return False
-
-            # Delete user from user_role table 
-            self.cursor.execute(USER_QUERIES["delete_user_role"], (username,))
-            
-            # Delete user-related data
+            # Delete user logs
             self.cursor.execute(USER_QUERIES["delete_user_related"], (username,))
-            
+            # Delete user roles
+            self.cursor.execute(USER_QUERIES["delete_user_role"], (username,))
             # Delete the user
             self.cursor.execute(USER_QUERIES["delete_user"], (username,))
-            
+
             self.conn.commit()
             print(f"User '{username}' and all related data have been deleted successfully.")
             
@@ -142,7 +142,6 @@ class UserManager:
                 print("You have deleted your own account. Logging out...")
                 self.current_user = None
                 self.privileges = None
-            
             return True
         except sqlite3.Error as e:
             print(f"Error: Unable to delete user '{username}'. {e}")

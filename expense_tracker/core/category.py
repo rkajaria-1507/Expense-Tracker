@@ -1,5 +1,5 @@
 import sqlite3
-from sql_queries import CATEGORY_QUERIES
+from expense_tracker.database.sql_queries import CATEGORY_QUERIES
 
 class CategoryManager:
     def __init__(self, cursor, conn):

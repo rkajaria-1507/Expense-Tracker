@@ -1,21 +1,38 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
-from expense import ExpenseManager
 from datetime import datetime
-from logs import LogManager
+import os
+import sys
+
+# Get project root directory
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+# Updated imports from the package structure
+from expense_tracker.core.expense import ExpenseManager
+from expense_tracker.utils.logs import LogManager
 
 def show_manage_expenses():
     st.markdown("<div class='main-header'>Expense Management</div>", unsafe_allow_html=True)
     
-    # Get database connection and expense manager
-    conn = sqlite3.connect("ExpenseReport", check_same_thread=False)
-    cursor = conn.cursor()
+    # Get database connection and expense manager using same path as app.py
+    db_path = os.path.join(project_root, "expense_tracker", "database", "ExpenseReport")
+    # Reuse existing connection if in st.session_state
+    if "conn" in st.session_state and "cursor" in st.session_state:
+        conn = st.session_state.conn
+        cursor = st.session_state.cursor
+    else:
+        conn = sqlite3.connect(db_path, check_same_thread=False)
+        cursor = conn.cursor()
+    
     expense_manager = ExpenseManager(cursor, conn)
     expense_manager.set_current_user(st.session_state.username)
     log_manager = LogManager(cursor, conn)
     log_manager.set_current_user(st.session_state.username)
     
+    # Rest of the code remains the same
     # Set up tabs for different expense operations
     tab1, tab2, tab3, tab4 = st.tabs(["Add Expense", "List Expenses", "Update Expense", "Delete Expense"])
     

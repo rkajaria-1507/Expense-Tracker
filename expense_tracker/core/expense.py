@@ -1,6 +1,6 @@
 import sqlite3
 from datetime import datetime
-from sql_queries import EXPENSE_QUERIES, BASE_EXPENSE_QUERY
+from expense_tracker.database.sql_queries import EXPENSE_QUERIES, BASE_EXPENSE_QUERY
 
 class ExpenseManager:
     def __init__(self, cursor, conn):
@@ -19,6 +19,8 @@ class ExpenseManager:
             return True
         except ValueError:
             return False
+    
+    # ...existing code...
     
     def addexpense(self, amount, category, payment_method, date, description, tag, payment_detail_identifier="", import_fn=0):
         # Try to convert amount to float
