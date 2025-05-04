@@ -64,10 +64,7 @@ def show_system_logs():
     if logs:
         # Format logs for display
         # Make sure the column names match the number of columns in the data
-        column_names = ["ID", "Username", "Activity Type", "Timestamp"]
-        if len(logs[0]) == 5:  # If there are 5 columns in the data
-            column_names.append("Details")
-            
+        column_names = ["ID", "Username", "Timestamp", "Description"]
         logs_df = pd.DataFrame(logs, columns=column_names)
         # Start row numbering from 1
         logs_df.index = logs_df.index + 1
