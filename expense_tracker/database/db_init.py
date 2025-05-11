@@ -111,16 +111,16 @@ def initialize_database(db_connection):
         )
     ''')
     
-    # Create Logs table (renamed from Activity_Log)
+    # Drop Logs table to recreate schema correctly
+    cursor.execute('DROP TABLE IF EXISTS Logs')
+
+    # Create Logs table with log_id, username, timestamp, description only
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS Logs (
+        CREATE TABLE Logs (
             log_id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT,
-            activity_type TEXT NOT NULL,
             timestamp TEXT NOT NULL,
-            details TEXT,
-            description TEXT,
-            FOREIGN KEY (username) REFERENCES User(username)
+            description TEXT
         )
     ''')
     

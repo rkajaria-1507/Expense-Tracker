@@ -184,21 +184,21 @@ LOG_QUERIES = {
         INSERT INTO Logs (username, timestamp, description) 
         VALUES (?, ?, ?)""",
     "get_user_logs": """
-        SELECT logid, timestamp, username, description 
+        SELECT log_id AS logid, username, timestamp, description 
         FROM Logs 
         WHERE username = ? 
         ORDER BY timestamp ASC 
         LIMIT ?""",
     "get_all_logs": """
-        SELECT logid, timestamp, username, description 
+        SELECT log_id AS logid, username, timestamp, description 
         FROM Logs 
         ORDER BY timestamp ASC 
         LIMIT ?""",
     "view_logs_base": """
-        SELECT logid, username, timestamp, description
+        SELECT log_id AS logid, username, timestamp, description
         FROM Logs""",
     "view_logs_order": " ORDER BY timestamp ASC",
     "get_users_with_logs": """
         SELECT DISTINCT username FROM Logs ORDER BY username
-    """
+    """,
 }
