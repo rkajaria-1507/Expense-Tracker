@@ -1,19 +1,19 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from expense_tracker.database.connection import get_connection
-from expense_tracker.core.expense import ExpenseManager
+from streamlit import session_state
+from expense_tracker.database.sql_queries import CATEGORY_QUERIES, PAYMENT_QUERIES
 from expense_tracker.utils.logs import LogManager
 
 def show_manage_expenses():
     st.markdown("<div class='main-header'>Expense Management</div>", unsafe_allow_html=True)
      
-    # Initialize DB connection and managers
-    conn, cursor = get_connection()
-    expense_manager = ExpenseManager(cursor, conn)
-    expense_manager.set_current_user(st.session_state.username)
-    log_manager = LogManager(cursor, conn)
-    log_manager.set_current_user(st.session_state.username)
+    # Retrieve shared managers and cursor
+    cursor = session_state.cursor
+    expense_manager = session_state.expense_manager
+    expense_manager.set_current_user(session_state.username)
+    log_manager = session_state.log_manager
+    log_manager.set_current_user(session_state.username)
 
     # Rest of the code remains the same
     # Set up tabs for different expense operations
@@ -24,11 +24,11 @@ def show_manage_expenses():
         st.subheader("Add New Expense")
         
         # Get available categories
-        cursor.execute("SELECT category_name FROM Categories")
+        cursor.execute(CATEGORY_QUERIES["list_categories"])
         categories = [cat[0] for cat in cursor.fetchall()]
         
         # Get available payment methods
-        cursor.execute("SELECT payment_method_name FROM Payment_Method")
+        cursor.execute(PAYMENT_QUERIES["list_payment_methods"])
         payment_methods = [pm[0] for pm in cursor.fetchall()]
         
         if not categories or not payment_methods:
@@ -91,12 +91,12 @@ def show_manage_expenses():
             
             with col2:
                 # Category filter
-                cursor.execute("SELECT category_name FROM Categories")
+                cursor.execute(CATEGORY_QUERIES["list_categories"])
                 all_categories = [cat[0] for cat in cursor.fetchall()]
                 selected_category = st.selectbox("Category", ["All"] + all_categories)
                 
                 # Payment method filter
-                cursor.execute("SELECT payment_method_name FROM Payment_Method")
+                cursor.execute(PAYMENT_QUERIES["list_payment_methods"])
                 all_methods = [pm[0] for pm in cursor.fetchall()]
                 selected_method = st.selectbox("Payment Method", ["All"] + all_methods)
                 
@@ -223,10 +223,10 @@ def show_manage_expenses():
             expense_id = int(selected_expense.split('|')[0].split(':')[1].strip())
             
             # Get available categories and payment methods
-            cursor.execute("SELECT category_name FROM Categories")
+            cursor.execute(CATEGORY_QUERIES["list_categories"])
             categories = [cat[0] for cat in cursor.fetchall()]
             
-            cursor.execute("SELECT payment_method_name FROM Payment_Method")
+            cursor.execute(PAYMENT_QUERIES["list_payment_methods"])
             payment_methods = [pm[0] for pm in cursor.fetchall()]
             
             # Get current expense details for pre-filling the form

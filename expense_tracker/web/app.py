@@ -1,18 +1,12 @@
 import streamlit as st
-import sqlite3  # retained for possible local use but connection now from centralized module
-from datetime import datetime
+import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import os
 import sys
-import pandas as pd  # added pandas import
-
-# Add project root to sys.path to allow importing expense_tracker
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-# Updated imports from the package
 from expense_tracker.core.user import UserManager
 from expense_tracker.core.category import CategoryManager
 from expense_tracker.core.payment import PaymentManager
@@ -21,7 +15,6 @@ from expense_tracker.core.reporting import ReportManager
 from expense_tracker.utils.csv_operations import CSVOperations
 from expense_tracker.utils.logs import LogManager
 from expense_tracker.database.sql_queries import USER_QUERIES
-from expense_tracker.config.constants import list_of_privileges
 
 # Import centralized DB connection
 from expense_tracker.database.connection import get_connection
@@ -163,6 +156,17 @@ conn, cursor = get_connection()
 (user_manager, category_manager, payment_manager, 
 expense_manager, csv_operations, report_manager, log_manager) = initialize_managers(conn, cursor)
 
+# Persist objects in session_state
+st.session_state.conn = conn
+st.session_state.cursor = cursor
+st.session_state.user_manager = user_manager
+st.session_state.category_manager = category_manager
+st.session_state.payment_manager = payment_manager
+st.session_state.expense_manager = expense_manager
+st.session_state.csv_operations = csv_operations
+st.session_state.report_manager = report_manager
+st.session_state.log_manager = log_manager
+
 # Authentication Functions
 def login_user(username, password):
     if user_manager.authenticate(username, password):
@@ -247,7 +251,8 @@ def show_sidebar():
 def show_delete_account():
     st.markdown("<div class='main-header'>Delete My Account</div>", unsafe_allow_html=True)
     # Count user-related expenses
-    cursor = st.session_state.cursor
+    # Use module-level cursor
+    global cursor
     user = st.session_state.username
     cursor.execute(USER_QUERIES["check_user_expenses"], (user,))
     count = cursor.fetchone()[0]

@@ -1,21 +1,19 @@
+import streamlit as st
 import pandas as pd
 from datetime import datetime
 import plotly.express as px
-import plotly.graph_objects as go
-from expense_tracker.database.connection import get_connection
-from expense_tracker.core.reporting import ReportManager
-from expense_tracker.utils.logs import LogManager
-import streamlit as st
+from streamlit import session_state
+from expense_tracker.database.sql_queries import CATEGORY_QUERIES
 
 def show_basic_reports():
     st.markdown("<div class='main-header'>Basic Reports</div>", unsafe_allow_html=True)
 
-    # Initialize DB connection and managers
-    conn, cursor = get_connection()
-    report_manager = ReportManager(cursor, conn)
-    report_manager.set_user_info(st.session_state.username, st.session_state.role)
-    log_manager = LogManager(cursor, conn)
-    log_manager.set_current_user(st.session_state.username)
+    # Retrieve shared managers and cursor
+    cursor = session_state.cursor
+    report_manager = session_state.report_manager
+    report_manager.set_user_info(session_state.username, session_state.role)
+    log_manager = session_state.log_manager
+    log_manager.set_current_user(session_state.username)
 
     # Tabs
     tabs = st.tabs(["Top Expenses", "Category Overview", "Time Summary"])
@@ -63,7 +61,8 @@ def show_basic_reports():
     with tabs[1]:
         st.subheader("Category Spending Overview")
 
-        cursor.execute("SELECT category_name FROM Categories ORDER BY category_name")
+        # Fetch categories via shared SQL templates
+        cursor.execute(CATEGORY_QUERIES["list_categories"])
         categories = [c[0] for c in cursor.fetchall()]
         selected = st.selectbox("Select Category", categories)
 

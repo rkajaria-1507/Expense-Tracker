@@ -2,8 +2,7 @@ import streamlit as st
 import pandas as pd
 import tempfile
 from datetime import datetime
-from expense_tracker.database.connection import get_connection
-from expense_tracker.core.expense import ExpenseManager
+from streamlit import session_state
 from expense_tracker.utils.csv_operations import CSVOperations
 from expense_tracker.utils.logs import LogManager
 import os
@@ -14,15 +13,12 @@ project_root = Path(__file__).resolve().parent.parent.parent
 
 def show_import_export():
     st.markdown("<div class='main-header'>Import/Export Data</div>", unsafe_allow_html=True)
-     
-    # Initialize DB connection and managers
-    conn, cursor = get_connection()
-    expense_manager = ExpenseManager(cursor, conn)
-    expense_manager.set_current_user(st.session_state.username)
-    csv_operations = CSVOperations(cursor, conn, expense_manager)
-    csv_operations.set_current_user(st.session_state.username)
-    log_manager = LogManager(cursor, conn)
-    log_manager.set_current_user(st.session_state.username)
+    # Retrieve shared managers and cursor
+    cursor = session_state.cursor
+    csv_operations = session_state.csv_operations
+    log_manager = session_state.log_manager
+    csv_operations.set_current_user(session_state.username)
+    log_manager.set_current_user(session_state.username)
 
     # Setup tabs for import and export
     tab1, tab2 = st.tabs(["Import", "Export"])

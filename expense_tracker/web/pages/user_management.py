@@ -1,41 +1,29 @@
 import streamlit as st
 import pandas as pd
+from streamlit import session_state
 
-from expense_tracker.database.connection import get_connection
-from expense_tracker.core.user import UserManager
 from expense_tracker.utils.logs import LogManager
+from expense_tracker.core.user import UserManager  # only for type hints, live instance from session_state
 
 def show_user_management():
     # Check if user has admin privileges
     if st.session_state.role != "admin":
         st.error("You don't have permission to access this page.")
         return
-        
     st.markdown("<div class='main-header'>User Management</div>", unsafe_allow_html=True)
-    
-    # Setup tabs for different user management functions
     tab1, tab2, tab3 = st.tabs(["List Users", "Add User", "Delete User"])
     
-    # Get database connection and user manager
-    conn, cursor = get_connection()
-    user_manager = UserManager(cursor, conn)
-    user_manager.current_user = st.session_state.username
-    user_manager.privileges = st.session_state.role
-    
-    log_manager = LogManager(cursor, conn)
-    log_manager.set_current_user(st.session_state.username)
+    # Retrieve shared managers
+    user_manager = session_state.user_manager
+    cursor = session_state.cursor
+    log_manager = session_state.log_manager
+    log_manager.set_current_user(session_state.username)
     
     # List Users Tab
     with tab1:
         st.subheader("All Users")
-        
-        # Query to get all users and their roles
-        cursor.execute("""
-            SELECT u.username, r.role_name
-            FROM User u
-            JOIN user_role ur ON u.username = ur.username
-            JOIN Role r ON ur.role_id = r.role_id
-        """)
+        # Fetch all users and their roles
+        cursor.execute(USER_QUERIES["list_users"])
         users = cursor.fetchall()
         
         if users:
@@ -49,7 +37,6 @@ def show_user_management():
     # Add User Tab
     with tab2:
         st.subheader("Add New User")
-        
         with st.form("add_user_form"):
             new_username = st.text_input("Username", key="new_username")
             new_password = st.text_input("Password", type="password", key="new_password")
@@ -58,7 +45,6 @@ def show_user_management():
             submit_button = st.form_submit_button("Add User")
             
             if submit_button:
-                # Attempt to register new user and get error message if any
                 success, message = user_manager.register(new_username, new_password, new_role)
                 if success:
                     log_manager.add_log(log_manager.generate_log_description("register", [new_username, new_role]))
@@ -70,14 +56,8 @@ def show_user_management():
     with tab3:
         st.subheader("Delete User")
         
-        # Get list of users except the current admin
-        cursor.execute("""
-            SELECT u.username
-            FROM User u
-            JOIN user_role ur ON u.username = ur.username
-            JOIN Role r ON ur.role_id = r.role_id
-            WHERE u.username != ?
-        """, (st.session_state.username,))
+        # Users except current admin
+        cursor.execute("SELECT username FROM User WHERE username != ?", (session_state.username,))
         
         users_to_delete = [user[0] for user in cursor.fetchall()]
         

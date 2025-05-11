@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
-from expense_tracker.database.connection import get_connection
-from expense_tracker.core.category import CategoryManager
+from streamlit import session_state
 from expense_tracker.utils.logs import LogManager
+from expense_tracker.database.sql_queries import CATEGORY_QUERIES
 
 def show_category_management():
     # Check if user has admin privileges
@@ -11,22 +11,18 @@ def show_category_management():
         return
         
     st.markdown("<div class='main-header'>Category Management</div>", unsafe_allow_html=True)
-    
-    # Setup tabs for different category management functions
     tab1, tab2, tab3 = st.tabs(["List Categories", "Add Category", "Delete Category"])
-    
-    # Get database connection and category manager
-    conn, cursor = get_connection()
-    category_manager = CategoryManager(cursor, conn)
-    log_manager = LogManager(cursor, conn)
-    log_manager.set_current_user(st.session_state.username)
+    # Retrieve shared managers
+    cursor = session_state.cursor
+    category_manager = session_state.category_manager
+    log_manager = session_state.log_manager
+    log_manager.set_current_user(session_state.username)
     
     # List Categories Tab
     with tab1:
         st.subheader("All Categories")
-        
-        # Query to get all categories
-        cursor.execute("SELECT category_name FROM Categories ORDER BY category_name")
+        # Fetch all categories
+        cursor.execute(CATEGORY_QUERIES["list_categories"])
         categories = cursor.fetchall()
         
         if categories:
@@ -60,8 +56,8 @@ def show_category_management():
     with tab3:
         st.subheader("Delete Category")
         
-        # Get list of categories for deletion
-        cursor.execute("SELECT category_name FROM Categories ORDER BY category_name")
+        # Categories for deletion
+        cursor.execute(CATEGORY_QUERIES["list_categories"])
         categories_to_delete = [cat[0] for cat in cursor.fetchall()]
         
         if not categories_to_delete:
@@ -82,11 +78,10 @@ def show_category_management():
             
             # Confirmation before deletion
             delete_confirm = st.checkbox("I understand the consequences and want to delete this category", key="confirm_cat_delete")
-            if delete_confirm:
-                if st.button("Delete Category", key="delete_category_btn"):
-                    result = category_manager.delete_category(category_to_delete)
-                    if result:
-                        log_manager.add_log(log_manager.generate_log_description("delete_category", [category_to_delete]))
-                        st.success(f"Category '{category_to_delete}' deleted successfully!")
-                    else:
-                        st.error(f"Failed to delete category '{category_to_delete}'.")
+            if delete_confirm and st.button("Delete Category", key="delete_category_btn"):
+                result = category_manager.delete_category(category_to_delete)
+                if result:
+                    log_manager.add_log(log_manager.generate_log_description("delete_category", [category_to_delete]))
+                    st.success(f"Category '{category_to_delete}' deleted successfully!")
+                else:
+                    st.error(f"Failed to delete category '{category_to_delete}'.")

@@ -111,12 +111,9 @@ def initialize_database(db_connection):
         )
     ''')
     
-    # Drop Logs table to recreate schema correctly
-    cursor.execute('DROP TABLE IF EXISTS Logs')
-
-    # Create Logs table with log_id, username, timestamp, description only
+    # Create Logs table if not exists
     cursor.execute('''
-        CREATE TABLE Logs (
+        CREATE TABLE IF NOT EXISTS Logs (
             log_id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT,
             timestamp TEXT NOT NULL,

@@ -2,24 +2,20 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import plotly.express as px
-import plotly.graph_objects as go
-from expense_tracker.database.connection import get_connection
-from expense_tracker.core.reporting import ReportManager
-from expense_tracker.utils.logs import LogManager
+from streamlit import session_state
+from expense_tracker.database.sql_queries import PAYMENT_QUERIES
 
 def show_advanced_reports():
     st.markdown("<div class='main-header'>Advanced Analytics</div>", unsafe_allow_html=True)
 
-    # Initialize DB connection and managers
-    conn, cursor = get_connection()
-     
-    report_manager = ReportManager(cursor, conn)
-    report_manager.set_user_info(st.session_state.username, st.session_state.role)
+    # Retrieve shared managers and cursor
+    cursor = session_state.cursor
+    report_manager = session_state.report_manager
+    report_manager.set_user_info(session_state.username, session_state.role)
+    log_manager = session_state.log_manager
+    log_manager.set_current_user(session_state.username)
 
-    log_manager = LogManager(cursor, conn)
-    log_manager.set_current_user(st.session_state.username)
-
-     # Tabs
+    # Tabs
     tabs = st.tabs(["Above Average Expenses", "Analytics Dashboard", "Payment Method Details"])
 
     # Tab 1: Above Average Expenses
@@ -104,7 +100,8 @@ def show_advanced_reports():
     with tabs[2]:
         st.subheader("Payment Method Analysis")
 
-        cursor.execute("SELECT payment_method_name FROM Payment_Method")
+        # Fetch methods via shared SQL templates
+        cursor.execute(PAYMENT_QUERIES["list_payment_methods"])
         methods = [row[0] for row in cursor.fetchall()]
 
         selected = st.selectbox("Payment Method", methods)

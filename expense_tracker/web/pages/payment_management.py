@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
-from expense_tracker.database.connection import get_connection
-from expense_tracker.core.payment import PaymentManager
+from streamlit import session_state
 from expense_tracker.utils.logs import LogManager
 from expense_tracker.database.sql_queries import PAYMENT_QUERIES
 
@@ -10,24 +9,19 @@ def show_payment_management():
     if st.session_state.role != "admin":
         st.error("You don't have permission to access this page.")
         return
-        
     st.markdown("<div class='main-header'>Payment Method Management</div>", unsafe_allow_html=True)
-    
-    # Setup tabs for different payment method functions
     tab1, tab2, tab3 = st.tabs(["List Payment Methods", "Add Payment Method", "Delete Payment Method"])
-    
-    # Get database connection and payment manager
-    conn, cursor = get_connection()
-    payment_manager = PaymentManager(cursor, conn)
-    log_manager = LogManager(cursor, conn)
-    log_manager.set_current_user(st.session_state.username)
+    # Retrieve shared managers
+    cursor = session_state.cursor
+    payment_manager = session_state.payment_manager
+    log_manager = session_state.log_manager
+    log_manager.set_current_user(session_state.username)
     
     # List Payment Methods Tab
     with tab1:
         st.subheader("All Payment Methods")
-        
-        # Query to get all payment methods
-        cursor.execute("SELECT payment_method_name FROM Payment_Method ORDER BY payment_method_name")
+        # Fetch all payment methods
+        cursor.execute(PAYMENT_QUERIES["list_payment_methods"])
         payment_methods = cursor.fetchall()
         
         if payment_methods:
@@ -59,8 +53,8 @@ def show_payment_management():
     # Delete Payment Method Tab
     with tab3:
         st.subheader("Delete Payment Method")
-        # Get list of payment methods
-        cursor.execute("SELECT payment_method_name FROM Payment_Method ORDER BY payment_method_name")
+        # Fetch payment methods for deletion
+        cursor.execute(PAYMENT_QUERIES["list_payment_methods"])
         methods_to_delete = [m[0] for m in cursor.fetchall()]
         if not methods_to_delete:
             st.info("No payment methods available to delete.")
