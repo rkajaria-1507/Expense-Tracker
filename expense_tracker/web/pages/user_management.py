@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from streamlit import session_state
 
+from expense_tracker.database.sql_queries import USER_QUERIES
 from expense_tracker.utils.logs import LogManager
 from expense_tracker.core.user import UserManager  # only for type hints, live instance from session_state
 

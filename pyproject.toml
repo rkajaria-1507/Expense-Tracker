@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "expense_tracker"
+version = "0.1.0"
+description = "A comprehensive expense tracking application"
+readme = "README.md"
+requires-python = ">=3.6"
+license = {text = "MIT"}
+dependencies = [
+    "matplotlib>=3.5.0",
+    "numpy>=1.20.0",
+    "streamlit>=1.21.0",
+    "pandas>=1.5.0",
+    "plotly>=5.10.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/yourusername/expense-tracker"
+"Bug Tracker" = "https://github.com/yourusername/expense-tracker/issues"

@@ -1,0 +1,7 @@
+include README.md
+include requirements.txt
+recursive-include expense_tracker/static *
+recursive-include expense_tracker/web/templates *
+recursive-include expense_tracker/database *.sql
+global-exclude *.pyc
+global-exclude __pycache__/*
