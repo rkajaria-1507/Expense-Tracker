@@ -23,8 +23,13 @@ try:
     main()
     
 except Exception as e:
+    import traceback
+    
     st.error(f"Error importing or running the app: {str(e)}")
     st.error("Please check the logs for more details.")
+    
+    # Display the full traceback for debugging
+    st.code(traceback.format_exc(), language="python")
     
     # Try to provide helpful debug information
     st.write("### Debug Information")
