@@ -1,107 +1,155 @@
-# Expense Tracking System
+# Expensly - Expense Tracking System
 
-# A comprehensive application for tracking and analyzing personal or organizational expenses, providing a modern Streamlit web interface.
+<div align="center">
+  <img src="expense_tracker/static/img/er_diagram_expense_reporting_app.png" alt="Expense Tracking System" width="500px"/>
+  
+  <p>A comprehensive application for tracking and analyzing personal or organizational expenses</p>
+  
+  [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://expensly.streamlit.app)
+</div>
 
-## Overview
+## 📋 Overview
 
-This system allows users to add, manage, and analyze expenses with multiple categories, payment methods, and tags. It features robust reporting capabilities, CSV import/export functionality, and a role-based access control system.
+Expensly is a robust expense tracking system that allows users to add, manage, and analyze expenses with multiple categories, payment methods, and tags. It features powerful reporting capabilities, CSV import/export functionality, and a role-based access control system.
 
-## Features
+## ✨ Features
 
+### Core Features
 - **User Management**: Registration, authentication, and role-based permissions
-- **Expense Tracking**: Add, update, delete, and list expenses
+- **Expense Tracking**: Add, update, delete, and list expenses 
 - **Categorization**: Organize expenses by categories and tags
 - **Payment Methods**: Track expenses by different payment methods
-- **Account Deletion**: Users and admins can permanently delete accounts along with all associated data via confirmation prompts
+- **Account Management**: Users and admins can manage accounts with data protection
 - **Data Import/Export**: CSV file support for bulk operations
+
+### Analytics & Reporting
+- **Interactive Dashboards**: Visual representation of expense data
 - **Advanced Reporting**: Multiple report types including:
   - Top N expenses
   - Category spending analysis
   - Monthly category breakdowns
   - Above-average expenses
-  - Payment method usage
+  - Payment method usage analytics
   - Tag-based analysis
-  - Data visualization
+  - Customizable data visualizations
+
+### Security & Administration
+- **Role-Based Access**: Admin and User roles with appropriate permissions
+- **Logs Module**: Detailed logs of user actions for security auditing
+- **Data Protection**: Sensitive payment information is masked in reports
 
 ## New Features
 
-- **Logs Module:**  
-  The system now maintains detailed logs of user actions (e.g., login/logout, adding users, expense operations, report generation).  
-  Administrators can view logs via the `view_logs` command.
+### Security & Administration
+- **Role-Based Access**: Admin and User roles with appropriate permissions
+- **Logs Module**: Detailed logs of user actions for security auditing
+- **Data Protection**: Sensitive payment information is masked in reports
 
-- **Enhanced Reporting:**  
-  New reporting functions have been implemented including:
-  - `report payment_method_details_expense` - Analyzes payment method details with masking of sensitive information.
-  - `report analyze_expenses` - Generates a comprehensive dashboard for expense analytics with customizable filters.
+## 🌟 Web Interface
 
-- **Web Interface:**  
-  A modern web application built with Streamlit that provides:
-  - Interactive dashboards with data visualizations
-  - User-friendly forms for data entry and management
-  - Responsive design for desktop and mobile access
-  - Role-based navigation and permissions
-  - Real-time analytics and reporting
+<div align="center">
+  <img src="expense_tracker/static/img/detailed_relational_schema_expense_reporting_app.png" alt="Expensly Dashboard" width="650px"/>
+</div>
 
-## Installation
+The modern web application built with Streamlit provides:
+
+- **Interactive Dashboards**: Real-time data visualizations
+- **User-Friendly Forms**: Intuitive data entry and management
+- **Responsive Design**: Works on desktop and mobile devices
+- **Role-Based Navigation**: Customized experience based on permissions
+- **Real-Time Analytics**: Instant insight into your spending habits
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
 - Python 3.6+
-- SQLite3 (included in Python standard library)
-- Required Python packages:
-  - matplotlib
-  - numpy
+- Required packages (automatically installed):
   - streamlit
   - pandas
   - plotly
+  - matplotlib
+  - numpy
 
-### Libraries Used
+### Quick Start
 
-This project uses the following libraries:
-- **External libraries** (need installation):
-  - matplotlib - Data visualization for CLI
-  - numpy - Numerical calculations
-  - streamlit - Web interface
-  - pandas - Data manipulation
-  - plotly - Interactive web visualizations
+**Option 1: Use the live app**
+- Visit [https://expensly.streamlit.app](https://expensly.streamlit.app)
 
-- **Standard library** (included with Python):
-  - sqlite3 - Database operations
-  - csv - CSV file handling
-  - datetime - Date and time operations
-  - shlex - Command parsing (CLI)
-  - subprocess - Process management
-  - os, sys - System operations
+**Option 2: Run locally**
 
-### Setup
-
-1. Clone or download this repository
+1. Clone this repository
 2. Install required packages:
-   ```
+   ```powershell
    pip install -r requirements.txt
    ```
-3. Run the application using the launcher script:
+3. Run the Streamlit app:
+   ```powershell
+   streamlit run streamlit_app.py
    ```
-   run_expense_tracker.bat
-   ```
-   It will install dependencies if needed and launch the Streamlit web interface.
 
-## Web Interface
+### First-Time Usage
 
-The web interface provides a more user-friendly way to interact with the expense tracking system. It includes:
+1. **Register an account** or use the default admin credentials:
+   - Username: `admin`
+   - Password: `admin`
+
+2. **Explore the interface**:
+   - Add categories and payment methods (admin)
+   - Add your expenses
+   - Generate reports and visualizations
+   - Import/export data using CSV
+
+## 📊 Data Management
+
+### CSV Import/Export Format
+
+The expected CSV format for import/export is:
+```
+amount,category,payment_method,date,description,tag,payment_detail_identifier
+```
+
+Example data:
+```
+45.99,Groceries,Credit Card,2023-05-15,Weekly shopping,food,xxxx-xxxx-xxxx-1234
+120.00,Utilities,Bank Transfer,2023-05-10,Electricity bill,bills,ACH-8765432
+```
+
+### Filtering Data
+
+Many features support powerful filtering with the following syntax:
+```
+<field> <operator> <value>
+```
+
+Where:
+- `field`: amount, date, category, tag, payment_method, month
+- `operator`: =, <, >, <=, >=
+- Multiple filters can be combined with commas
+
+Example:
+```
+amount > 100, category = food, month = january
+```
+
+## 👥 User Roles
+
+### Admin
+- Full system management
+- User, category, and payment method administration
+- Access to system-wide reports and logs
+
+### User
+- Manage personal expenses
+- Generate personal reports
+- Use existing categories and payment methods
+
+## 📱 App Sections
 
 ### Dashboard
 - Summary metrics of expenses
-- Interactive charts for expense analysis by category, month, payment method, and tag
+- Interactive charts for expense analysis
 - Recent expense listing
-
-### User Management (Admin)
-- Add, view, and manage users
-- Set user roles and permissions
-
-### Category & Payment Management (Admin)
-- Add and manage expense categories
-- Add and manage payment methods
 
 ### Expense Management
 - Add, edit, and delete expenses
@@ -110,78 +158,89 @@ The web interface provides a more user-friendly way to interact with the expense
 
 ### Reports
 - Basic reports with interactive filters
-- Advanced analytics with comprehensive dashboards
+- Advanced analytics dashboards
 - Data export options
 
-### Import/Export
-- CSV file import with validation
-- Export filtered data to CSV
+### Admin Panel
+- User management
+- Category & payment method configuration
+- System logs and activity monitoring
 
-### System Logs (Admin)
-- View detailed system and user activity logs
-- Filter logs by user, action, or date
-
-## Filtering Data
-
-Many commands and features support filtering with the following syntax:
-```
-<field> <operator> <value>
-```
-
-Where:
-- `field` can be: amount, date, category, tag, payment_method, month
-- `operator` can be: =, <, >, <=, >=
-- Multiple filters can be combined with commas
-
-Example:
-```
-listexpenses amount > 100, category = food, month = january
-```
-
-## User Roles
-
-### Admin
-- Has access to all functions except expense functions such as add, delete, modify
-- Can manage users, categories, and payment methods
-- Has access to system-wide reports and logs
-
-### User
-- Can manage own expenses
-- Can view own reports
-- Limited to viewing/using existing categories and payment methods
-
-## Import/Export Format
-
-The expected CSV format for import/export is:
-```
-amount,category,payment_method,date,description,tag,payment_detail_identifier
-```
-
-Example template is available in `import_expenses_template.csv`
-
-## Project Structure
-
-The project has been reorganized into a proper Python package structure:
+## 🔧 Project Structure
 
 ```
 expense-tracker/
 ├── expense_tracker/           # Main package
-│   ├── __init__.py
-│   ├── config/                # Configuration
-│   │   ├── __init__.py
-│   │   └── constants.py
 │   ├── core/                  # Core functionality
-│   │   ├── __init__.py
-│   │   ├── category.py
-│   │   ├── expense.py
-│   │   ├── payment.py
-│   │   ├── reporting.py
-│   │   └── user.py
 │   ├── database/              # Database operations
-│   │   ├── __init__.py
-│   │   ├── db_init.py
-│   │   ├── sql_queries.py
-│   │   └── ExpenseReport      # SQLite database file
+│   ├── static/                # Static assets
+│   │   ├── img/               # Images and icons
+│   │   └── templates/         # CSV templates
+│   ├── utils/                 # Utility functions
+│   └── web/                   # Web interface
+│       ├── app.py             # Main Streamlit app
+│       └── pages/             # UI pages
+├── .streamlit/                # Streamlit configuration
+├── streamlit_app.py           # Entry point for Streamlit Cloud
+├── requirements.txt           # Dependencies
+└── README.md                  # Documentation
+```
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+1. **Database Connection**: If you encounter database errors, check network connectivity or refresh the page.
+
+2. **Import Failures**: Ensure your CSV matches the expected format. Check for incorrect formats or missing fields.
+
+3. **Visualization Issues**: If charts don't display, try using a different browser or clearing your cache.
+
+4. **Permission Errors**: Verify you're logged in with the appropriate role for the action.
+
+### Error Messages
+
+- "Error: Username does not exist" - Check spelling or register as a new user
+- "Error: Category does not exist" - Use an existing category or add as admin
+- "Error: Unauthorized command" - Login with appropriate permissions
+
+## 🔒 Security Notes
+
+- This is a demonstration application - do not use for highly sensitive financial data
+- Payment method details are masked in reports for security
+- For production use, implement additional security measures
+
+## 📚 Technologies Used
+
+- **Frontend**: Streamlit, Plotly, HTML/CSS
+- **Backend**: Python, SQLite
+- **Data Processing**: Pandas, NumPy
+- **Visualization**: Matplotlib, Plotly
+- **Deployment**: Streamlit Cloud
+
+## 📝 License
+
+This project is provided as an educational tool. Feel free to use and modify for personal or educational purposes.
+
+## 🚀 Future Enhancements
+
+To extend this project, consider:
+- Multi-currency support
+- Budget planning features
+- Receipt image processing
+- Mobile app integration
+- Cloud synchronization
+
+---
+
+<div align="center">
+  <p>Made with ❤️ by Database Management Team</p>
+  <p>
+    <a href="https://expensly.streamlit.app">Live Demo</a> • 
+    <a href="https://github.com/yourusername/expense-tracker">GitHub</a>
+  </p>
+  <p>© 2025 Expensly</p>
+</div>
 │   ├── utils/                 # Utility functions
 │   │   ├── __init__.py
 │   │   ├── csv_operations.py
