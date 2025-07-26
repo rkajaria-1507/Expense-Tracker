@@ -26,22 +26,23 @@ def show_import_export():
     # Import Tab
     with tab1:
         st.subheader("Import Expenses from CSV")
-        
-        # Show template download link
-        template_path = project_root / "expense_tracker" / "static" / "templates" / "import_expenses_template.csv"
-        
-        if os.path.exists(template_path):
+
+        # Get the absolute path to the template
+        current_dir = Path(__file__).parent
+        template_path = current_dir.parent.parent / "static" / "templates" / "import_expenses_template.csv"
+
+        if template_path.exists():
             with open(template_path, "r") as f:
                 template_content = f.read()
-            
+
             st.download_button(
                 label="Download CSV Template",
                 data=template_content,
                 file_name="expense_template.csv",
                 mime="text/csv"
             )
-            
-            st.markdown("""        
+
+            st.markdown("""
             **CSV Format Requirements:**
             - Headers: amount, category, payment_method, date, description, tag, payment_detail_identifier (optional)
             - Date format: YYYY-MM-DD
