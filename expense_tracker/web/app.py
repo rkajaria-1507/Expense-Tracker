@@ -152,42 +152,45 @@ def initialize_managers(_conn, _cursor):
             expense_manager, csv_operations, report_manager, log_manager)
 
 # Get database connection and initialize managers
-conn, cursor = get_connection()
-(user_manager, category_manager, payment_manager, 
-expense_manager, csv_operations, report_manager, log_manager) = initialize_managers(conn, cursor)
+def ensure_session_initialized():
+    if "cursor" not in st.session_state:
+        conn, cursor = get_connection()
+        (
+            user_manager, category_manager, payment_manager, 
+            expense_manager, csv_operations, report_manager, log_manager
+        ) = initialize_managers(conn, cursor)
 
-# Persist objects in session_state
-st.session_state.conn = conn
-st.session_state.cursor = cursor
-st.session_state.user_manager = user_manager
-st.session_state.category_manager = category_manager
-st.session_state.payment_manager = payment_manager
-st.session_state.expense_manager = expense_manager
-st.session_state.csv_operations = csv_operations
-st.session_state.report_manager = report_manager
-st.session_state.log_manager = log_manager
+        st.session_state.conn = conn
+        st.session_state.cursor = cursor
+        st.session_state.user_manager = user_manager
+        st.session_state.category_manager = category_manager
+        st.session_state.payment_manager = payment_manager
+        st.session_state.expense_manager = expense_manager
+        st.session_state.csv_operations = csv_operations
+        st.session_state.report_manager = report_manager
+        st.session_state.log_manager = log_manager
 
 # Authentication Functions
 def login_user(username, password):
-    if user_manager.authenticate(username, password):
+    if st.session_state.user_manager.authenticate(username, password):
         st.session_state.authenticated = True
         st.session_state.username = username
-        st.session_state.role = user_manager.privileges
+        st.session_state.role = st.session_state.user_manager.privileges
         
         # Set current user in all managers
-        expense_manager.set_current_user(username)
-        csv_operations.set_current_user(username)
-        report_manager.set_user_info(username, user_manager.privileges)
-        log_manager.set_current_user(username)
-        
-        log_manager.add_log(log_manager.generate_log_description("login"))
+        st.session_state.expense_manager.set_current_user(username)
+        st.session_state.csv_operations.set_current_user(username)
+        st.session_state.report_manager.set_user_info(username, st.session_state.user_manager.privileges)
+        st.session_state.log_manager.set_current_user(username)
+
+        st.session_state.log_manager.add_log(st.session_state.log_manager.generate_log_description("login"))
         return True
     return False
 
 def logout_user():
     if st.session_state.authenticated:
-        log_manager.add_log(log_manager.generate_log_description("logout"))
-        user_manager.logout()
+        st.session_state.log_manager.add_log(st.session_state.log_manager.generate_log_description("logout"))
+        st.session_state.user_manager.logout()
         st.session_state.authenticated = False
         st.session_state.username = None
         st.session_state.role = None
@@ -259,7 +262,7 @@ def show_delete_account():
     st.warning(f"Deleting your account will remove your user data and {count} associated expenses. This action cannot be undone.")
     confirm = st.checkbox("I understand the consequences and want to delete my account", key="confirm_self_delete")
     if confirm and st.button("Delete My Account", key="confirm_delete_account_btn"):
-        result = user_manager.delete_user(user)
+        result = st.session_state.user_manager.delete_user(user)
         if result:
             st.success("Your account and all associated data have been deleted. You will be logged out.")
             st.session_state.authenticated = False
@@ -299,7 +302,7 @@ def show_login_page():
                 new_pass = st.text_input("Choose a password", type="password", key="signup_password")
                 signup = st.form_submit_button("Sign Up")
                 if signup:
-                    if user_manager.register(new_user, new_pass):
+                    if st.session_state.user_manager.register(new_user, new_pass):
                         # Auto-login new user
                         if login_user(new_user, new_pass):
                             st.success("Registration successful!")
@@ -340,7 +343,7 @@ def show_dashboard():
         WHERE ue.username = '{st.session_state.username}'
         """
     
-    expenses_df = pd.read_sql_query(query, conn)
+    expenses_df = pd.read_sql_query(query, st.session_state.conn)
     
     # Quick metrics
     col1, col2, col3, col4 = st.columns(4)
@@ -424,6 +427,8 @@ def show_dashboard():
 
 # Main app logic
 def main():
+    ensure_session_initialized()
+    
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
     
